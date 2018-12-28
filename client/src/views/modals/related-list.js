@@ -92,9 +92,11 @@ Espo.define('views/modals/related-list', ['views/modal', 'search-manager'], func
 
             this.panelCollection = this.options.panelCollection;
 
-            this.listenTo(this.panelCollection, 'sync', function () {
-                this.collection.fetch();
-            }, this)
+            if (this.panelCollection) {
+                this.listenTo(this.panelCollection, 'sync', function () {
+                    this.collection.fetch();
+                }, this)
+            }
 
             if (this.noCreateScopeList.indexOf(this.scope) !== -1) {
                 this.createDisabled = true;
@@ -157,12 +159,14 @@ Espo.define('views/modals/related-list', ['views/modal', 'search-manager'], func
                 collection.orderBy = this.defaultOrderBy;
                 collection.order = this.defaultOrder;
 
-                this.listenTo(collection, 'change', function (model) {
-                    var panelModel = this.panelCollection.get(model.id);
-                    if (panelModel) {
-                        panelModel.set(model.attributes);
-                    }
-                }, this);
+                if (this.panelCollection) {
+                    this.listenTo(collection, 'change', function (model) {
+                        var panelModel = this.panelCollection.get(model.id);
+                        if (panelModel) {
+                            panelModel.set(model.attributes);
+                        }
+                    }, this);
+                }
 
                 this.loadSearch();
                 this.wait(true);

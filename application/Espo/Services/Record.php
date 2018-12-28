@@ -2243,7 +2243,11 @@ class Record extends \Espo\Core\Services\Base
 
     protected function findLinkedFollowers($id, $params)
     {
-        $maxSize = 0;
+        $entity = $this->getEntity($id);
+
+        return $this->getStreamService()->findEntityFollowers($entity, $params);
+
+        /*$maxSize = 0;
 
         $entity = $this->getEntityManager()->getEntity($this->entityType, $id);
         if (!$entity) {
@@ -2271,7 +2275,7 @@ class Record extends \Espo\Core\Services\Base
         return [
             'total' => $total,
             'list' => $list
-        ];
+        ];*/
     }
 
     public function getDuplicateAttributes($id)

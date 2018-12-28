@@ -242,6 +242,13 @@ Espo.define('views/record/detail', ['views/record/base', 'view-record-helper'], 
                     });
                 }
             }
+
+            if (this.type === 'detail' && this.getMetadata().get(['scopes', this.scope, 'stream'])) {
+                this.addDropdownItem({
+                    label: 'View Followers',
+                    name: 'viewFollowers'
+                });
+            }
         },
 
         disableActionItems: function () {
@@ -903,6 +910,58 @@ Espo.define('views/record/detail', ['views/record/base', 'view-record-helper'], 
             });
         },
 
+        actionViewFollowers: function (data) {
+            var viewName =
+                this.getMetadata().get(['clientDefs', this.model.name, 'relationshipPanels', 'followers', 'viewModalView']) ||
+                this.getMetadata().get(['clientDefs', 'User', 'modalViews', 'relatedList']) ||
+                'views/modals/related-list';
+
+            var options = {
+                model: this.model,
+                //panelName: this.panelName,
+                link: 'followers',
+                scope: 'User',
+                defs: this.defs,
+                title: this.translate('Followers'),
+                filtersDisabled: true,
+                //filterList: this.filterList,
+                //layoutName: this.layoutName,
+                //defaultOrder: this.defaultOrder,
+                //defaultOrderBy: this.defaultOrderBy,
+                url: this.model.entityType + '/' + this.model.id + '/followers',
+                //listViewName: this.listViewName,
+                createDisabled: true,
+                selectDisabled: true,
+                //rowActionsView: this.rowActionsView,
+                //panelCollection: this.collection,
+                //filtersDisabled: this.relatedListFiltersDisabled
+            };
+
+            if (data.viewOptions) {
+                for (var item in data.viewOptions) {
+                    options[item] = data.viewOptions[item];
+                }
+            }
+
+            Espo.Ui.notify(this.translate('loading', 'messages'));
+            this.createView('modalRelatedList', viewName, options, function (view) {
+                Espo.Ui.notify(false);
+                view.render();
+
+                this.listenTo(view, 'action', function (action, data, e) {
+                    var method = 'action' + Espo.Utils.upperCaseFirst(action);
+                    if (typeof this[method] == 'function') {
+                        this[method](data, e);
+                        e.preventDefault();
+                    }
+                }, this);
+
+                this.listenToOnce(view, 'close', function () {
+                    this.clearView('modalRelatedList');
+                }, this);
+            });
+        },
+
         actionPrintPdf: function () {
             this.createView('pdfTemplate', 'views/modals/select-template', {
                 entityType: this.model.name
@@ -1049,7 +1108,7 @@ Espo.define('views/record/detail', ['views/record/base', 'view-record-helper'], 
             }
         },
 
-        manageAccessDelete: function () {
+        manageAccessDelete: function (second) {
             if (this.isNew) return;
 
             var deleteAccess = this.getAcl().checkModel(this.model, 'delete', true);
@@ -1062,7 +1121,25 @@ Espo.define('views/record/detail', ['views/record/base', 'view-record-helper'], 
 
             if (deleteAccess === null) {
                 this.listenToOnce(this.model, 'sync', function () {
-                    this.manageAccessDelete();
+                    this.manageAccessDelete(true);
+                }, this);
+            }
+        },
+
+        manageAccessStream: function (second) {
+            if (this.isNew) return;
+
+            var streamAccess = this.getAcl().checkModel(this.model, 'stream', true);
+
+            if (!streamAccess) {
+                this.hideActionItem('viewFollowers');
+            } else {
+                this.showActionItem('viewFollowers');
+            }
+
+            if (streamAccess === null) {
+                this.listenToOnce(this.model, 'sync', function () {
+                    this.manageAccessStream(true);
                 }, this);
             }
         },
@@ -1070,6 +1147,7 @@ Espo.define('views/record/detail', ['views/record/base', 'view-record-helper'], 
         manageAccess: function () {
             this.manageAccessEdit();
             this.manageAccessDelete();
+            this.manageAccessStream();
         },
 
         addButton: function (o) {
