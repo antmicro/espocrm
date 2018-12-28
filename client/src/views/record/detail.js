@@ -918,23 +918,14 @@ Espo.define('views/record/detail', ['views/record/base', 'view-record-helper'], 
 
             var options = {
                 model: this.model,
-                //panelName: this.panelName,
                 link: 'followers',
                 scope: 'User',
                 defs: this.defs,
                 title: this.translate('Followers'),
                 filtersDisabled: true,
-                //filterList: this.filterList,
-                //layoutName: this.layoutName,
-                //defaultOrder: this.defaultOrder,
-                //defaultOrderBy: this.defaultOrderBy,
                 url: this.model.entityType + '/' + this.model.id + '/followers',
-                //listViewName: this.listViewName,
                 createDisabled: true,
                 selectDisabled: true,
-                //rowActionsView: this.rowActionsView,
-                //panelCollection: this.collection,
-                //filtersDisabled: this.relatedListFiltersDisabled
             };
 
             if (data.viewOptions) {
@@ -1128,6 +1119,11 @@ Espo.define('views/record/detail', ['views/record/base', 'view-record-helper'], 
 
         manageAccessStream: function (second) {
             if (this.isNew) return;
+
+            if (~['no', 'own'].indexOf(this.getAcl().getLevel('User', 'read'))) {
+                this.hideActionItem('viewFollowers');
+                return;
+            }
 
             var streamAccess = this.getAcl().checkModel(this.model, 'stream', true);
 

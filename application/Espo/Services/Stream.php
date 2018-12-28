@@ -1355,12 +1355,7 @@ class Stream extends \Espo\Core\Services\Base
         $query = $this->getEntityManager()->getQuery();
         $selectParams['t'] = true;
         $sql = $query->createSelectQuery('User', $selectParams);
-        echo $sql;
-        //die;
 
-
-        print_r($selectParams);
-        die;
         $collection = $this->getEntityManager()->getRepository('User')->find($selectParams);
         $total = $this->getEntityManager()->getRepository('User')->count($selectParams);
 
@@ -1381,12 +1376,17 @@ class Stream extends \Espo\Core\Services\Base
 
         $sql = $query->createSelectQuery('User', [
             'select' => ['id', 'name'],
-            'customJoin' => "
-                JOIN subscription AS `subscription` ON
-                    subscription.user_id = user.id AND
-                    subscription.entity_id = ".$query->quote($entity->id)." AND
-                    subscription.entity_type = ".$query->quote($entity->getEntityType())."
-            ",
+            'joins' => [
+                [
+                    'Subscription',
+                    'subscription',
+                    [
+                        'subscription.userId=:' => 'user.id',
+                        'subscription.entityId' => $entity->id,
+                        'subscription.entityType' => $entity->getEntityType()
+                    ]
+                ]
+            ],
             'offset' => $offset,
             'limit' => $limit,
             'whereClause' => [

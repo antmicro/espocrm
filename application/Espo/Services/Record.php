@@ -2246,36 +2246,6 @@ class Record extends \Espo\Core\Services\Base
         $entity = $this->getEntity($id);
 
         return $this->getStreamService()->findEntityFollowers($entity, $params);
-
-        /*$maxSize = 0;
-
-        $entity = $this->getEntityManager()->getEntity($this->entityType, $id);
-        if (!$entity) {
-            throw new NotFound();
-        }
-
-        $data = $this->getStreamService()->getEntityFollowers($entity, $params['offset'], $params['maxSize']);
-
-        $list = [];
-
-        foreach ($data['idList'] as $id) {
-            $list[] = array(
-                'id' => $id,
-                'name' => $data['nameMap']->$id
-            );
-        }
-
-        if ($maxSize && count($list) > $maxSize) {
-            $total = -1;
-            unset($list[count($list) - 1]);
-        } else {
-            $total = -2;
-        }
-
-        return [
-            'total' => $total,
-            'list' => $list
-        ];*/
     }
 
     public function getDuplicateAttributes($id)
