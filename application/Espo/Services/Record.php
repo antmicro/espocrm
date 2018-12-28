@@ -2243,7 +2243,13 @@ class Record extends \Espo\Core\Services\Base
 
     protected function findLinkedFollowers($id, $params)
     {
-        $entity = $this->getEntity($id);
+        $entity = $this->getRepository()->get($id);
+        if (!$entity) {
+            throw new NotFound();
+        }
+        if (!$this->getAcl()->check($entity, 'read')) {
+            throw new Forbidden();
+        }
 
         return $this->getStreamService()->findEntityFollowers($entity, $params);
     }
